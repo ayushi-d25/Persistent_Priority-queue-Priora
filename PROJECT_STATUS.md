@@ -30,9 +30,7 @@ Priora/
 ├── server/
 │   ├── server.js                 # Express backend server entry point (Port 4001)
 │   ├── data/
-│   │   ├── users.json            # Persisted user credentials (salted scrypt hashes)
-│   │   ├── queue.json            # Shared fallback queue storage
-│   │   └── queues/               # Per-user persistent queue files
+│   │   └── queues/               # Legacy data retained for reference only
 │   │       ├── alice_test.json
 │   │       ├── ayushi.json
 │   │       ├── bob_test.json
@@ -87,9 +85,9 @@ Priora/
   5. `update(id, newPriority)`: Updates priority in `indexMap`, runs `_siftUp` and `_siftDown` on both heaps.
   6. `delete(id)`: Removes element from both heaps in $O(\log n)$ using `_removeItem(id)`.
   7. `is_empty()`: Returns boolean `minHeap.length === 0`.
-- **Atomic Persistence**:
-  - `_save()` writes JSON string to `<filepath>.tmp` first before invoking `fs.renameSync` to eliminate file corruption risks on sudden process exit.
-  - `_load()` detects corrupted files, creates a timestamped backup (`queue.json.corrupted.<timestamp>`), and boots safely empty.
+- **PostgreSQL Persistence**:
+  - Queue rows are loaded from PostgreSQL and scoped by `user_id`.
+  - Mutations use parameterized SQL and extraction uses a transaction.
 
 #### REST API Server (`server/server.js` & `server/routes/`)
 - **Port**: Default `4001` (overridable via `process.env.PORT`).
@@ -178,7 +176,7 @@ The test suite in [`tests/module.test.js`](file:///c:/Users/HP/Desktop/All/Proje
 
 ### 8. RECENT CHANGES
 
-1. **Per-User Queue Scoping**: Refactored `queueRoutes.js` to initialize per-user `PersistentPriorityQueue` instances stored in `server/data/queues/<username>.json`. Attached `Authorization: Bearer <token>` to all frontend API requests.
+1. **Per-User Queue Scoping**: Refactored `queueRoutes.js` to initialize per-user PostgreSQL-backed `PersistentPriorityQueue` instances. Attached authorization tokens to all frontend API requests.
 2. **Landing Page Character Graphic**: Added `src/assets/login_char.png` next to the login card with responsive desktop side-by-side flex layout and mobile auto-hiding.
 3. **Favicon Cropping**: Processed `Icon3.png` with `sharp` to strip transparent padding, producing a 251x289px crop saved to `client/public/favicon.png`.
 4. **User Header Dropdown**: Converted header user badge into an interactive dropdown menu containing Cancel and Logout options.

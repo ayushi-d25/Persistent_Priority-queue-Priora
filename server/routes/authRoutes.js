@@ -1,44 +1,34 @@
 /**
  * Auth Routes — Authentication API for Priora
  *
- * Implements signup, login, and token verification with JSON file persistence.
+ * Implements signup, login, and token verification with PostgreSQL persistence.
  * Uses Node.js crypto module for secure password hashing (scrypt) and tokens.
  */
 
 'use strict';
 
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
-
-const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
+const db = require('../db/db');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function loadUsers() {
-  try {
-    if (!fs.existsSync(USERS_FILE)) {
-      return [];
-    }
-    const raw = fs.readFileSync(USERS_FILE, 'utf-8').trim();
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed.users) ? parsed.users : [];
-  } catch (err) {
-    console.warn('[Auth] Error reading users file:', err.message);
-    return [];
-  }
+function mapUser(row) {
+  return {
+    id: row.id,
+    username: row.username,
+    salt: row.salt,
+    hash: row.hash,
+    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+  };
 }
 
-function saveUsers(users) {
-  const dir = path.dirname(USERS_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  const tmpPath = USERS_FILE + '.tmp';
-  fs.writeFileSync(tmpPath, JSON.stringify({ users }, null, 2), 'utf-8');
-  fs.renameSync(tmpPath, USERS_FILE);
+async function findUser(username) {
+  const result = await db.query(
+    'SELECT id, username, salt, hash, created_at FROM users WHERE LOWER(username) = LOWER($1) LIMIT 1',
+    [username]
+  );
+  return result.rows[0] ? mapUser(result.rows[0]) : null;
 }
 
 function hashPassword(password, salt) {
@@ -60,7 +50,7 @@ function createAuthRoutes() {
 
   // ── POST /api/auth/signup ───────────────────────────────────────────────
 
-  router.post('/signup', (req, res) => {
+  router.post('/signup', async (req, res) => {
     try {
       const { username, password } = req.body;
 
@@ -79,12 +69,8 @@ function createAuthRoutes() {
       }
 
       const cleanUsername = username.trim();
-      const users = loadUsers();
-
       // Check duplicate username
-      const existing = users.find(
-        (u) => u.username.toLowerCase() === cleanUsername.toLowerCase()
-      );
+      const existing = await findUser(cleanUsername);
       if (existing) {
         return res.status(400).json({
           success: false,
@@ -95,36 +81,36 @@ function createAuthRoutes() {
       const salt = crypto.randomBytes(16).toString('hex');
       const hash = hashPassword(password, salt);
       const token = generateToken();
-      const createdAt = new Date().toISOString();
+      const result = await db.query(
+        'INSERT INTO users (username, salt, hash) VALUES ($1, $2, $3) RETURNING id, username, salt, hash, created_at',
+        [cleanUsername, salt, hash]
+      );
+      const newUser = mapUser(result.rows[0]);
 
-      const newUser = {
-        id: crypto.randomUUID(),
-        username: cleanUsername,
-        salt,
-        hash,
-        createdAt,
-      };
-
-      users.push(newUser);
-      saveUsers(users);
-
-      activeSessions.set(token, { username: cleanUsername, createdAt });
+      activeSessions.set(token, { username: newUser.username, createdAt: newUser.createdAt });
 
       res.status(201).json({
         success: true,
         data: {
-          username: cleanUsername,
+          username: newUser.username,
           token,
         },
       });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      console.error('[Auth] Signup database error:', err);
+      if (err.code === '23505') {
+        return res.status(400).json({
+          success: false,
+          error: `Username "${req.body.username.trim()}" is already taken. Please log in or choose another name.`,
+        });
+      }
+      res.status(500).json({ success: false, error: 'Unable to create account.' });
     }
   });
 
   // ── POST /api/auth/login ────────────────────────────────────────────────
 
-  router.post('/login', (req, res) => {
+  router.post('/login', async (req, res) => {
     try {
       const { username, password } = req.body;
 
@@ -136,11 +122,7 @@ function createAuthRoutes() {
       }
 
       const cleanUsername = username.trim();
-      const users = loadUsers();
-
-      const user = users.find(
-        (u) => u.username.toLowerCase() === cleanUsername.toLowerCase()
-      );
+      const user = await findUser(cleanUsername);
 
       if (!user) {
         return res.status(401).json({
@@ -168,7 +150,8 @@ function createAuthRoutes() {
         },
       });
     } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
+      console.error('[Auth] Login database error:', err);
+      res.status(500).json({ success: false, error: 'Unable to complete login.' });
     }
   });
 

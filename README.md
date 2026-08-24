@@ -41,7 +41,7 @@ The core priority queue supports standard queue operations (`insert`, `peek`, `i
 
 ## Problem Statement
 
-Priority queues in memory lose all queued tasks when an application crashes, restarts, or deploys. Priora solves this by serializing data mutations atomically to disk (`server/data/queue.json`), ensuring zero task loss while maintaining strict $O(\log n)$ algorithmic bounds.
+Priority queues in memory lose all queued tasks when an application crashes, restarts, or deploys. Priora persists queue and user data in PostgreSQL while maintaining strict $O(\log n)$ operation bounds.
 
 ---
 
@@ -49,8 +49,7 @@ Priority queues in memory lose all queued tasks when an application crashes, res
 
 - **Dual-Heap Architecture**: Fast $O(\log n)$ `extract_min` AND `extract_max`.
 - **Index Map Positional Tracking**: $O(\log n)$ priority updates and targeted item deletions by ID.
-- **Atomic Persistence**: Temp-file write (`.tmp`) + rename pattern prevents data corruption during unexpected crashes.
-- **Fault-Tolerant Load**: Automatically handles missing, empty, or corrupted JSON files without crashing, creating automatic backups of corrupted files.
+- **PostgreSQL Persistence**: Parameterized queries provide durable storage, and extraction uses a transaction for atomic removal.
 - **Decoupled Architecture**: `module.js` has zero dependencies on Express or React and can be used in any Node.js environment.
 - **Interactive Dashboard**: Modern React UI with binary heap tree visualization, live stats, and dark mode aesthetic.
 
@@ -76,10 +75,10 @@ Priority queues in memory lose all queued tasks when an application crashes, res
 │             (PersistentPriorityQueue Class)             │
 │        [ Min-Heap ] ── [ Max-Heap ] ── [ Index Map ]   │
 └────────────────────────────┬────────────────────────────┘
-                             │ Atomic File I/O
+                             │ Parameterized SQL
                              ▼
 ┌─────────────────────────────────────────────────────────┐
-│                 server/data/queue.json                  │
+│                    PostgreSQL database                  │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -98,7 +97,7 @@ priora/
 │   ├── routes/
 │   │   └── queueRoutes.js     # API Route controllers
 │   └── data/
-│       └── queue.json         # Persistent JSON file storage
+│       └── db/db.js           # Shared PostgreSQL pool
 ├── client/                    # React Dashboard (Vite)
 │   ├── package.json
 │   ├── vite.config.js
@@ -150,13 +149,7 @@ To allow both `extract_min` and `extract_max` in $O(\log n)$:
 
 ## Persistence Strategy
 
-State is stored in `server/data/queue.json`:
-- **Atomic Writes**: `_save()` writes the state to `queue.json.tmp` first, then uses `fs.renameSync` to atomically swap the file. This prevents half-written JSON files if a process is killed mid-write.
-- **Resilience**: `_load()` gracefully handles:
-  - Non-existent file $\rightarrow$ starts empty.
-  - Empty file $\rightarrow$ starts empty.
-  - Corrupted JSON $\rightarrow$ creates a `.corrupted.<timestamp>` copy and starts empty.
-  - Duplicate IDs or malformed item objects $\rightarrow$ logs warning and skips invalid entries.
+State is stored in PostgreSQL tables `users` and `queue_items`. Queue rows are scoped by `user_id`, ordered by priority and creation time, and accessed through one shared pool.
 
 ---
 
@@ -230,17 +223,17 @@ npm test
 ```js
 const PersistentPriorityQueue = require('./module');
 
-// Instantiate queue with storage path
-const queue = new PersistentPriorityQueue('./server/data/queue.json');
+// Instantiate a queue scoped to an existing username
+const queue = new PersistentPriorityQueue('alice');
 
 // Insert items (value, priority)
-const item1 = queue.insert('Fix production bug', 1);
-const item2 = queue.insert('Update docs', 5);
+const item1 = await queue.insert('Fix production bug', 1);
+const item2 = await queue.insert('Update docs', 5);
 
-console.log(queue.peek());        // { id: '...', value: 'Fix production bug', priority: 1, ... }
-console.log(queue.extract_min()); // Removes & returns 'Fix production bug'
-console.log(queue.extract_max()); // Removes & returns 'Update docs'
-console.log(queue.is_empty());    // true
+console.log(await queue.peek());        // { id: '...', value: 'Fix production bug', priority: 1, ... }
+console.log(await queue.extract_min()); // Removes & returns 'Fix production bug'
+console.log(await queue.extract_max()); // Removes & returns 'Update docs'
+console.log(await queue.is_empty());    // true
 ```
 
 ---

@@ -8,8 +8,12 @@
 
 'use strict';
 
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 const express = require('express');
 const cors    = require('cors');
+const db      = require('./db/db');
 const createQueueRoutes = require('./routes/queueRoutes');
 const createAuthRoutes  = require('./routes/authRoutes');
 
@@ -44,8 +48,24 @@ app.use((err, _req, res, _next) => {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`[Priora] Server running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  try {
+    await db.query('SELECT 1');
+    await db.query(
+      'ALTER TABLE queue_items ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE'
+    );
+    console.log('[Priora] PostgreSQL connected successfully');
+    app.listen(PORT, () => {
+      console.log(`[Priora] Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('[Priora] Failed to connect to PostgreSQL:', error);
+    process.exitCode = 1;
+  }
+}
+
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app;
