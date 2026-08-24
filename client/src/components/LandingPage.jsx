@@ -21,9 +21,7 @@ export default function LandingPage({ onLoginSuccess }) {
     setLoading(true);
     setError(null);
 
-    const endpoint = isSignup
-      ? `${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`
-      : `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`;
+    const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login';
 
     try {
       const res = await fetch(endpoint, {
