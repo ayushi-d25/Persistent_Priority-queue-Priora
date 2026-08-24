@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "id": "19d23657-37d2-40a8-b62b-f0c12a54f5bf",
+      "value": "uji8uji",
+      "priority": 1,
+      "createdAt": "2026-08-24T13:39:50.317Z"
+    },
+    {
+      "id": "c7ae5ec2-a1d2-41a6-b8b3-f683b70e8668",
+      "value": "jjj",
+      "priority": 10,
+      "createdAt": "2026-08-24T13:39:26.514Z"
+    }
+  ]
+}

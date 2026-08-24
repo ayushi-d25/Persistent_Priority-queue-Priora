@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "d9685b8a-74ab-46b2-bfd5-d0bc133c9c79",
+      "value": "Item 2",
+      "priority": 20,
+      "createdAt": "2026-08-24T13:06:08.793Z"
+    },
+    {
+      "id": "17241e90-663f-46e1-b3ba-93b146a198e3",
+      "value": "Item 3",
+      "priority": 30,
+      "createdAt": "2026-08-24T13:06:08.795Z"
+    },
+    {
+      "id": "3a1f2511-cc0d-45f1-8103-ac603254453c",
+      "value": "Item 4",
+      "priority": 40,
+      "createdAt": "2026-08-24T13:06:08.796Z"
+    }
+  ]
+}

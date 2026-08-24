@@ -1,0 +1,28 @@
+{
+  "name": "priora",
+  "version": "1.0.0",
+  "description": "Priora — Persistent Priority Queue. A full-stack demonstration of a binary-heap-based priority queue with file-based JSON persistence.",
+  "main": "module.js",
+  "scripts": {
+    "dev": "node server/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "priority-queue",
+    "binary-heap",
+    "data-structures",
+    "persistent",
+    "express",
+    "rest-api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.1"
+  }
+}
