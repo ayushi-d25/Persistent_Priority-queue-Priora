@@ -55,7 +55,7 @@ export default function LandingPage({ onLoginSuccess }) {
        */}
       <div className="landing-scene">
 
-        {/* ── Female character graphic ─────────────────────────────────── */}
+        {/*Female character graphic  */}
         <div className="landing-char-wrapper" aria-hidden="true">
           <img
             src={loginChar}
@@ -66,7 +66,7 @@ export default function LandingPage({ onLoginSuccess }) {
           />
         </div>
 
-        {/* ── Login / Signup card ──────────────────────────────────────── */}
+        {/*  Login / Signup card  */}
         <div
           className="card landing-card"
         >
