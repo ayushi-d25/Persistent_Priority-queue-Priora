@@ -101,7 +101,7 @@ body {
   padding: 2rem 1.5rem;
 }
 
-/* ── App Banner / Hero Section ─────────────────────────────────────────── */
+/*  App Banner / Hero Section */
 
 .hero-banner {
   background: linear-gradient(135deg, var(--sidebar-bg), var(--bg-elevated));
@@ -157,7 +157,7 @@ body {
   gap: 1rem;
 }
 
-/* ── Theme Toggle Switch ─────────────────────────────────────────────────── */
+/* Theme Toggle Switch */
 
 .theme-toggle-btn {
   width: 48px;
@@ -182,7 +182,7 @@ body {
   transform: scale(0.95);
 }
 
-/* ── Badges & Status Chips ────────────────────────────────────────────────── */
+/*  Badges & Status Chips */
 
 .user-chip-btn {
   transition: all var(--transition-fast);
@@ -227,7 +227,7 @@ body {
   box-shadow: 0 0 8px var(--accent-peach);
 }
 
-/* ── Clay Card Styling ────────────────────────────────────────────────────── */
+/*  Clay Card Styling  */
 
 .card {
   background: var(--bg-surface);
@@ -260,7 +260,7 @@ body {
   flex-shrink: 0;
 }
 
-/* ── Dashboard Grid ──────────────────────────────────────────────────────── */
+/*  Dashboard Grid  */
 
 .dashboard-grid {
   display: grid;
@@ -281,7 +281,7 @@ body {
   gap: 1.75rem;
 }
 
-/* ── Form Controls & Inputs ──────────────────────────────────────────────── */
+/*  Form Controls & Inputs */
 
 .form-group {
   margin-bottom: 1.25rem;
@@ -314,7 +314,7 @@ body {
   box-shadow: var(--clay-input-shadow), 0 0 0 4px rgba(169, 198, 165, 0.35);
 }
 
-/* ── Buttons ─────────────────────────────────────────────────────────────── */
+/* Buttons */
 
 .btn {
   display: inline-flex;
@@ -378,7 +378,7 @@ body {
   color: var(--text-primary);
 }
 
-/* ── Queue Stats ────────────────────────────────────────────────────────── */
+/*  Queue Stats  */
 
 .stats-grid {
   display: grid;
@@ -425,7 +425,7 @@ body {
   font-weight: 700;
 }
 
-/* ── Queue Items List ───────────────────────────────────────────────────── */
+/* Queue Items List  */
 
 .queue-items-container {
   display: flex;
@@ -497,7 +497,7 @@ body {
   gap: 0.5rem;
 }
 
-/* ── Heap Tree Visualization ────────────────────────────────────────────── */
+/*  Heap Tree Visualization*/
 
 .heap-viz-container {
   display: flex;
@@ -572,7 +572,7 @@ body {
   box-shadow: var(--clay-btn-shadow);
 }
 
-/* ── Toast Alerts & Modals ───────────────────────────────────────────────── */
+/* Toast Alerts & Modals  */
 
 .empty-state {
   text-align: center;
@@ -657,7 +657,7 @@ body {
   color: var(--text-primary);
 }
 
-/* ── Landing Page Scene ───────────────────────────────────────────────────── */
+/*  Landing Page Scene  */
 
 /* Full-viewport centering wrapper */
 .landing-page-root {
@@ -668,11 +668,7 @@ body {
   padding: 1.5rem;
 }
 
-/*
- * Flex row: character on the left, card on the right.
- * align-items: flex-end so both bottom-align — character "stands on" the
- * same invisible floor as the card bottom edge.
- */
+
 .landing-scene {
   display: flex;
   flex-direction: row;
@@ -716,7 +712,7 @@ body {
   z-index: 2;
 }
 
-/* ── Mobile: hide character, re-center card ──────────────────────────────── */
+/* ── Mobile: hide character, re-center card  */
 @media (max-width: 768px) {
   .landing-char-wrapper {
     display: none;
